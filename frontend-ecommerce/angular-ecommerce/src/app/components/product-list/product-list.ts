@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Product } from '../../common/product';
 import { ProductService } from '../../services/product';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-product-list',
@@ -12,15 +13,28 @@ import { CommonModule } from '@angular/common';
 export class ProductList implements OnInit {
 
   products:Product[] = [];
+  currentCategoryId:number = 1;
 
-  constructor(private productService:ProductService){}
+  constructor(private productService:ProductService,private route:ActivatedRoute){}
 
   ngOnInit(): void {
-    this.listProducts();
+    this.route.paramMap.subscribe(()=>{
+      this.listProducts();
+    })
   }
 
   listProducts() {
-    this.productService.getProducts().subscribe(
+    // check if "id" parameter is avilable
+    const hasCategoryId:boolean = this.route.snapshot.paramMap.has('id');
+    if (hasCategoryId) {
+      // get the id param string . convert string into number
+      this.currentCategoryId = +this.route.snapshot.paramMap.get('id')!;
+    } else {
+      // not categoryId avilable ... default to category id 1
+      this.currentCategoryId = 1;
+    }
+
+    this.productService.getProducts(this.currentCategoryId).subscribe(
       data => {
         this.products = data;
       }
